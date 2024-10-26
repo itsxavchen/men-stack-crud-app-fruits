@@ -3,6 +3,8 @@ dotenv.config();
 
 const express = require("express");
 const mongoose = require('mongoose');
+const methodOverride = require("method-override");
+const morgan = require("morgan");
 
 const app = express();
 
@@ -15,6 +17,8 @@ mongoose.connection.on("connected", () => {
 const Fruit = require("./models/fruit.js");
 
 app.use(express.urlencoded({ extended: false }));
+app.use(methodOverride("_method"));
+app.use(morgan("dev"));
 
 app.get("/", async (req, res) => {
     res.render("index.ejs");
@@ -39,12 +43,14 @@ app.get("/fruits/new", (req, res) => {
     res.render("fruits/new.ejs");
 });
 
-app.get("/fruits/:fruitId", (req, res) => {
-  res.send(
-    `This route renders the show page for fruit id: ${req.params.fruitId}!`
-  );
+app.get("/fruits/:fruitId", async (req, res) => {
+  const foundFruit = await Fruit.findById(req.params.fruitId);
+  res.render("fruits/show.ejs", { fruit: foundFruit });
 });
 
+app.delete("/fruits/:fruitId", async (req, res) => {
+  res.send("This is the delete route");
+});
 
 app.listen(3000, () => {
   console.log("Listening on port 3000");
